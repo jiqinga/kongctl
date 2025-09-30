@@ -108,9 +108,3 @@ changelog:
 #      - "^docs:"
       - "^test:"
       - "^bump"
-release:
-  github:
-    owner: jiqinga
-    name: kongctl
-  draft: false
-  prerelease: auto
