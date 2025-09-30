@@ -23,7 +23,7 @@ jobs:
     name: ci - ${{matrix.os}}
     runs-on: ${{matrix.os}}
     env:
-      GOFLAGS: -mod=vendor
+      GOFLAGS: -mod=mod
     steps:
       - name: 检查代码
         uses: actions/checkout@v4
