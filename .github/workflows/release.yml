@@ -3,8 +3,8 @@ name: 发布构建与发布
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - 'v*'  # 仅推送符合 v* 的标签时触发发布
+  workflow_dispatch:  # 可手动触发（可选保留）
 
 permissions:
   contents: write
