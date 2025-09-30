@@ -39,7 +39,7 @@ builds:
 
 archives:
   - builds:
-      - binary
+      - kongctl
 #     name_template: >
 #       kube-prompt_{{ .Version }}_{{- title .Os }}_
 #       {{- if eq .Arch "amd64" }}x86_64
