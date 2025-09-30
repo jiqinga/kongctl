@@ -1,0 +1,104 @@
+# This is an example goreleaser.yaml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+version: 2
+
+project_name: kube-prompt
+
+env:
+  - CGO_ENABLED=0
+  - GO111MODULE=auto
+
+builds:
+  - id: binary
+    goos:
+#      - freebsd
+#      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+      - 386
+#    hooks:
+#      pre:
+#        - chmod +x scripts/upx.sh
+#      post:
+#        - scripts/upx.sh "{{ .Path }}"
+#    env:
+#      - CGO_ENABLED=0
+#      - GO111MODULE=auto
+    goarm:
+      - 7
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=binaryRelease
+#  - id: snap
+#    goos:
+#      - linux
+#    goarch:
+#      - amd64
+#      - arm
+#      - arm64
+#      - 386
+#    ldflags:
+#      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=snap
+
+archives:
+  - builds:
+      - binary
+    name_template: >
+      kube-prompt_{{ .Version }}_{{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end -}}
+    format_overrides:
+      - goos: windows
+        format: zip
+    builds_info:
+      group: root
+      owner: root
+    files:
+      - LICENSE
+      - README.md
+      - docs/*
+
+#upx:
+#  - enabled: true
+##    compress: best
+#    compress: 9
+#    lzma: true
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  groups:
+    - title: Dependency updates
+      regexp: '^.*?(.+)\(deps\)!?:.+$'
+      order: 300
+    - title: "New Features"
+      regexp: '^.*?(feat|新功能|add)(\(.+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\(.+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?(fix|refactor|bug)(\(.+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: '^.*?docs?(\(.+\))??!?:.+$'
+      order: 400
+    - title: "Build process updates"
+      regexp: '^.*?(build|ci)(\(.+\))??!?:.+$'
+      order: 400
+    - title: Other work
+      order: 9999
+  filters:
+    exclude:
+#      - "^docs:"
+      - "^test:"
+      - "^bump"

@@ -1,0 +1,94 @@
+name: Continuous Integration
+
+env:
+  GO_VERSION: 1.25.x
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+  pull_request:
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+#          - windows-latest
+
+    name: ci - ${{matrix.os}}
+    runs-on: ${{matrix.os}}
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: 检查代码
+        uses: actions/checkout@v4
+      - name: 设置go版本
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: 构建缓存
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/go-build
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
+          restore-keys: |
+            ${{runner.os}}-go-
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GOARCH: amd64
+    steps:
+      - name: build检查代码
+        uses: actions/checkout@v4
+      - name: build设置go版本
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: 构建缓存
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/go-build
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-build
+          restore-keys: |
+            ${{runner.os}}-go-
+      - name: 构建Linux二进制文件
+        run: |
+          GOOS=linux go build
+#      - name: 构建windows二进制文件
+#        run: |
+#          GOOS=windows go build
+      - name: 构建macos二进制文件
+        run: |
+          GOOS=darwin go build -ldflags="-s -w"
+
+  check-codebase:
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=vendor
+      GOARCH: amd64
+    steps:
+      - name: 检查代码
+        uses: actions/checkout@v4
+      - name: 设置go版本
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: 构建缓存
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-build
+          restore-keys: |
+            ${{runner.os}}-go-
+      - name: 检查Vendor目录
+        # ensure our vendor directory matches up with our go modules
+        run: |
+          go mod vendor && git diff --exit-code || (echo "Unexpected change to vendor directory. Run 'go mod vendor' locally and commit the changes" && exit 1)

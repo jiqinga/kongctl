@@ -1,50 +1,35 @@
 name: 发布构建与发布
-
+  GO_VERSION: 1.25.x
 on:
   push:
     tags:
-      - 'v*'  # 仅推送符合 v* 的标签时触发发布
-  workflow_dispatch:  # 可手动触发（可选保留）
-
-permissions:
-  contents: write
+      - 'v*'
 
 jobs:
-  release:
-    name: 使用 GoReleaser 构建与发布
+  publishGitRelease:
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - name: 检出代码
+      - name: 检查代码
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: 设置 Go 环境
+      - name: Unshallow repo
+        run: git fetch --prune --unshallow
+
+      - name: 设置go版本
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.x'
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
 
-      - name: 校验 Go 版本
-        run: go version
-
-      - name: 缓存 Go 依赖
-        uses: actions/cache@v4
+      - name: 版本构建
+        uses: goreleaser/goreleaser-action@v6
         with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: go-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            go-${{ runner.os }}-
-
-      - name: 安装 GoReleaser 并发布
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          version: latest
-          args: release --clean
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --verbose --clean --release-footer-tmpl=scripts/release/footer.md.tmpl --release-header-tmpl=scripts/release/head.md.tmpl
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{secrets.TOKEN_GITHUB}}
 
-      - name: 完成提示
-        if: success()
-        run: echo "✅ GoReleaser 发布完成（Tag: ${{ github.ref_name }}）"
