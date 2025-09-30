@@ -51,7 +51,7 @@ jobs:
       - name: 静态检查 (go vet)
         run: go vet -mod=mod ./...
       - name: 运行测试
-        run: go test ./... -count=1 -timeout=5m
+        run: go test ./... -count=1 -timeout=5m -mod=mod
       - name: 准备 dist 目录
         run: mkdir -p dist
       - name: 构建 Linux 二进制
