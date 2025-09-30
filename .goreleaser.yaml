@@ -1,0 +1,67 @@
+# GoReleaser 配置：构建多平台二进制并生成校验/发布到 GitHub Release
+project_name: kongctl
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: kongctl
+    main: ./cmd/kongctl
+    binary: kongctl
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X kongctl/internal/cli.version={{.Version}}
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ignore:
+      - goos: windows
+        goarch: arm64
+    flags: []
+
+archives:
+  - id: archive
+    builds: [kongctl]
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "checksums_{{ .Version }}.txt"
+
+changelog:
+  sort: asc
+  groups:
+    - title: "✨ 新功能"
+      regexp: "^feat"
+    - title: "🐛 修复"
+      regexp: "^fix"
+    - title: "📚 文档"
+      regexp: "^docs"
+    - title: "🧪 测试"
+      regexp: "^test"
+    - title: "🧹 重构/维护"
+      regexp: "^(refactor|chore)"
+    - title: "⚙️ CI"
+      regexp: "^ci"
+  filters:
+    exclude:
+      - '^Merge'
+      - '^revert'
+      - '^build:'
+      - '^deps:'
+
+release:
+  github:
+    owner: jiqinga
+    name: kongctl
+  draft: false
+  prerelease: auto
+
+# 可选：签名 / SBOM / docker 等后续再扩展

@@ -1,0 +1,13 @@
+# 顶层为一个 routes 列表（简写）：仅定义路由，自动创建 service/upstream
+- name: test-demo
+  paths: ["/demo"]
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 8080
+    path: /api
+    targets:
+      - target: demo-svc-1:8080
+        weight: 100
+      - target: demo-svc-2:8080
+

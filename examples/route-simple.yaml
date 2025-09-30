@@ -1,0 +1,85 @@
+# 顶层为一个 routes 列表（简写）：仅定义路由，自动创建 service/upstream
+- name: perceptual-platform-server-route
+  paths: ["/serv/perceptual-platform-server"]
+  path_handling: v1
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 80
+    path: /
+    targets:
+      - target: perceptual-platform-server-server:23663
+        weight: 100
+
+- name: services
+  paths: ["/services"]
+  path_handling: v1
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 80
+    path: /
+    targets:
+      - target: euoap-atom:80
+        weight: 100
+
+- name: attemper-executor-route
+  paths: ["/serv/attemper-executor"]
+  path_handling: v1
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 80
+    path: /
+    targets:
+      - target: attemper-executor:5212
+        weight: 100
+
+- name: euoap-fault-pre-route
+  paths: ["/serv/fault-pre/"]
+  path_handling: v1
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 80
+    path: /
+    targets:
+      - target: fault-preprocessing-web:28088
+        weight: 100
+
+- name: auth-route
+  paths: ["/auth-euoap"]
+  path_handling: v1
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 80
+    path: /
+    targets:
+      - target: auth:80
+        weight: 100
+
+- name: attemper-web-route
+  paths: ["/serv/attemper-web"]
+  path_handling: v1
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 80
+    path: /
+    targets:
+      - target: attemper-web:5210
+        weight: 100
+
+- name: perceptual-platform-server-route
+  paths: ["/serv/perceptual-platform-server"]
+  path_handling: v1
+  methods: ["GET"]
+  backend:
+    protocol: http
+    port: 80
+    path: /
+    targets:
+      - target: perceptual-platform-server-server:23663
+        weight: 100
+

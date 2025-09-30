@@ -1,0 +1,59 @@
+# 通过 kongctl apply -f examples/apply.yaml 应用
+upstreams:
+  - name: user-service-upstream
+    targets:
+      - target: user-svc-1:8080
+        weight: 100
+      - target: user-svc-2:8080
+        weight: 100
+
+services:
+  # 方式一：通过 upstream 关联，并可指定 protocol/port/path
+  - name: user-service
+    upstream: user-service-upstream
+    protocol: http
+    port: 8080
+    path: /api
+    retries: 5
+    connect_timeout: 60000
+    read_timeout: 60000
+    write_timeout: 60000
+
+  # 方式二：直接使用 URL
+  - name: echo
+    url: http://httpbin.org
+
+routes:
+  - name: user-list
+    service: user-service
+    paths: ["/v1/users"]
+    methods: ["GET"]
+    path_handling: v1
+    strip_path: true
+    preserve_host: false
+    protocols: ["http", "https"]
+    regex_priority: 0
+    https_redirect_status_code: 0
+    request_buffering: true
+    response_buffering: true
+    headers:
+      X-Env: ["prod"]
+    tags: ["team:user", "env:prod"]
+
+  - service: echo
+    hosts: ["example.com"]
+    paths: ["/echo"]
+    methods: ["GET", "POST"]
+
+  # 简写：仅定义 route，自动创建 test-demo-service 与 test-demo-upstream 并关联
+  - name: test-demo
+    paths: ["/demo"]
+    methods: ["GET"]
+    backend:
+      protocol: http
+      port: 8080
+      path: /api
+      targets:
+        - target: demo-svc-1:8080
+          weight: 100
+        - target: demo-svc-2:8080
