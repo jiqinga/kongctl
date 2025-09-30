@@ -2,36 +2,30 @@
 # Make sure to check the documentation at http://goreleaser.com
 version: 2
 
-project_name: kube-prompt
+project_name: kongctl
 
 env:
   - CGO_ENABLED=0
   - GO111MODULE=auto
 
 builds:
-  - id: binary
-    goos:
-#      - freebsd
-#      - windows
-      - darwin
-      - linux
-    goarch:
-      - amd64
-      - arm
-      - arm64
-      - 386
-#    hooks:
-#      pre:
-#        - chmod +x scripts/upx.sh
-#      post:
-#        - scripts/upx.sh "{{ .Path }}"
-#    env:
-#      - CGO_ENABLED=0
-#      - GO111MODULE=auto
-    goarm:
-      - 7
+  - id: kongctl
+    main: ./cmd/kongctl
+    binary: kongctl
+    env:
+      - CGO_ENABLED=0
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=binaryRelease
+      - -s -w -X kongctl/internal/cli.version={{.Version}}
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ignore:
+      - goos: windows
+        goarch: arm64
+    flags: []
+#     goarm:
+#       - 7
+#     ldflags:
+#       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=binaryRelease
 #  - id: snap
 #    goos:
 #      - linux
@@ -46,11 +40,12 @@ builds:
 archives:
   - builds:
       - binary
-    name_template: >
-      kube-prompt_{{ .Version }}_{{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end -}}
+#     name_template: >
+#       kube-prompt_{{ .Version }}_{{- title .Os }}_
+#       {{- if eq .Arch "amd64" }}x86_64
+#       {{- else if eq .Arch "386" }}i386
+#       {{- else }}{{ .Arch }}{{ end -}}
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
         format: zip
@@ -60,7 +55,6 @@ archives:
     files:
       - LICENSE
       - README.md
-      - docs/*
 
 #upx:
 #  - enabled: true
@@ -68,7 +62,7 @@ archives:
 #    compress: 9
 #    lzma: true
 checksum:
-  name_template: "checksums.txt"
+  name_template: "checksums_{{ .Version }}.txt"
 
 snapshot:
   version_template: "{{ .Tag }}-next"
@@ -77,6 +71,18 @@ changelog:
   sort: asc
   use: github
   groups:
+    - title: "✨ 新功能"
+      regexp: "^feat"
+    - title: "🐛 修复"
+      regexp: "^fix"
+    - title: "📚 文档"
+      regexp: "^docs"
+    - title: "🧪 测试"
+      regexp: "^test"
+    - title: "🧹 重构/维护"
+      regexp: "^(refactor|chore)"
+    - title: "⚙️ CI"
+      regexp: "^ci"
     - title: Dependency updates
       regexp: '^.*?(.+)\(deps\)!?:.+$'
       order: 300
@@ -102,3 +108,9 @@ changelog:
 #      - "^docs:"
       - "^test:"
       - "^bump"
+release:
+  github:
+    owner: jiqinga
+    name: kongctl
+  draft: false
+  prerelease: auto
